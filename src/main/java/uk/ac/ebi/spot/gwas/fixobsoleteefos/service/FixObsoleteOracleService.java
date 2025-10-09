@@ -50,10 +50,20 @@ public class FixObsoleteOracleService {
                 if (replacementId == null) continue;
                 System.out.printf("Found %s to be replaced by %s\n", olsEfoTrait.getShortForm(), replacedBy);
                 System.out.println(obsoleteId + " -> " + replacementId);
-                updateJoinTable("STUDY_EFO_TRAIT", obsoleteId, replacementId);
-                updateJoinTable("STUDY_BACKGROUND_EFO_TRAIT", obsoleteId, replacementId);
-                updateJoinTable("ASSOCIATION_EFO_TRAIT", obsoleteId, replacementId);
-                updateJoinTable("ASSOCIATION_BKG_EFO_TRAIT", obsoleteId, replacementId);
+
+                // Update tables with efo_trait_id column
+                updateJoinTable("STUDY_EFO_TRAIT", "efo_trait_id", obsoleteId, replacementId);
+                updateJoinTable("STUDY_BACKGROUND_EFO_TRAIT", "efo_trait_id", obsoleteId, replacementId);
+                updateJoinTable("ASSOCIATION_EFO_TRAIT", "efo_trait_id", obsoleteId, replacementId);
+                updateJoinTable("ASSOCIATION_BKG_EFO_TRAIT", "efo_trait_id", obsoleteId, replacementId);
+
+                // Update tables with parent_efo_trait_id column
+                updateJoinTable("ASSOCIATION_PARENT_EFO_TRAIT", "parent_efo_trait_id", obsoleteId, replacementId);
+                updateJoinTable("STUDY_PARENT_EFO_TRAIT", "parent_efo_trait_id", obsoleteId, replacementId);
+
+                // Update PARENT_CHILD_EFO_TRAIT table for both parent and child columns
+                updateJoinTable("PARENT_CHILD_EFO_TRAIT", "parent_efo_trait_id", obsoleteId, replacementId);
+                updateJoinTable("PARENT_CHILD_EFO_TRAIT", "child_efo_trait_id", obsoleteId, replacementId);
                 deleteObsoleteEfoTrait(obsoleteId);
             }
         }
@@ -71,9 +81,9 @@ public class FixObsoleteOracleService {
         }
     }
 
-    private void updateJoinTable(String tableName, Long obsoleteId, Long replacementId) {
+    private void updateJoinTable(String tableName, String columnName, Long obsoleteId, Long replacementId) {
         jdbcTemplate.update(
-                String.format("UPDATE %s SET efo_trait_id = ? WHERE efo_trait_id = ?", tableName),
+                String.format("UPDATE %s SET %s = ? WHERE %s = ?", tableName, columnName, columnName),
                 replacementId,
                 obsoleteId
         );
