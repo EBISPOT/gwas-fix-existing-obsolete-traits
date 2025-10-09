@@ -54,6 +54,7 @@ public class FixObsoleteOracleService {
                 updateJoinTable("STUDY_BACKGROUND_EFO_TRAIT", obsoleteId, replacementId);
                 updateJoinTable("ASSOCIATION_EFO_TRAIT", obsoleteId, replacementId);
                 updateJoinTable("ASSOCIATION_BKG_EFO_TRAIT", obsoleteId, replacementId);
+                deleteObsoleteEfoTrait(obsoleteId);
             }
         }
     }
@@ -74,6 +75,13 @@ public class FixObsoleteOracleService {
         jdbcTemplate.update(
                 String.format("UPDATE %s SET efo_trait_id = ? WHERE efo_trait_id = ?", tableName),
                 replacementId,
+                obsoleteId
+        );
+    }
+
+    private void deleteObsoleteEfoTrait(Long obsoleteId) {
+        jdbcTemplate.update(
+                "DELETE FROM EFO_TRAIT WHERE id = ?",
                 obsoleteId
         );
     }
